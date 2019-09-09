@@ -34,9 +34,13 @@ public class Scale {
 			}
 		}
 		n++;
-		System.out.println("\nHeaviest ball at pos: " + n + "\n");
+		//System.out.println("\nHeaviest ball at pos: " + n + "\n");
 	}
 	
+	
+	//Returns 1 if a > b
+	//Returns -1 if b > a
+	//Returns 0 if equal
 	public int weigh(double a, double b) {
 		this.steps++;
 		if(a > b) {
@@ -79,9 +83,10 @@ public class Scale {
 	
 	
 	/**
-	 * The recurssive method
+	 * The recurssive method to find heaviest ball
+	 * Uses the half the set as measurment
 	 */
-	public  void measure(ArrayList<Ball> s) {
+	public  void measureHalf(ArrayList<Ball> s) {
 		int a = s.size();
 		int b = (int)a/2;
 		
@@ -92,11 +97,11 @@ public class Scale {
 				System.out.println("The heavier ball is #" + result);
 			}else if(side == 1) {
 				s = newList(this.result, this.result+b);
-				measure(s);
+				measureHalf(s);
 			}else {
 				this.result += b;
 				s = newList(this.result, this.result + b);
-				measure(s);
+				measureHalf(s);
 			}
 		}else {
 			if(side == 0) {
@@ -113,24 +118,29 @@ public class Scale {
 		
 	}
 	
-	public  void measure1(ArrayList<Ball> s, int b) {
+	/*
+	 * B is the variant of measurement
+	 * We want to slowly change B and see how it affects the rate of change for the graph
+	 */
+	public  int measure(ArrayList<Ball> s, int b, int steps) {
 		int a = s.size();
-
 		int side = weigh(sumPos(s, 0, b), sumPos(s, b, b*2));
 		if(a > 3) {
 			if(side == 0) {
 				this.result += b*2+1;
 				s = newList(this.result, a);
-				measure(s);
+				measure(s, b, steps++);
 			}else if(side == 1) {
 				s = newList(this.result, this.result+b);
-				measure(s);
+				measure(s, b, steps++);
 			}else {
 				this.result += b;
 				s = newList(this.result, this.result + b);
-				measure(s);
+				measure(s, b, steps++);
 			}
+			
 		}else {
+			printSet();
 			if(side == 0) {
 				this.result += 3;
 				System.out.println("The heavier ball is #" + result);
@@ -142,9 +152,9 @@ public class Scale {
 				System.out.println("The heavier ball is #" + result);
 			}
 		}
+		return steps;
 		
 	}
-	
 	
 	
 	
@@ -152,6 +162,7 @@ public class Scale {
 	
 	/*
 	 * n is the heaviest ball();
+	 * initiates the array
 	 */
 	public void init(int n) {
 		for(int i = 0; i < this.set.size(); i++) {
@@ -175,19 +186,40 @@ public class Scale {
 	}
 	
 	/**
+	 * Returns the number of steps in the worse case
+	 * @param n
+	 * @return
+	 */
+	public double worstCase(int n) {
+		double stps = 0;
+		for(int i = 0; i < this.num; i++) {
+			init(i);
+			findHeaviest(n);
+			this.result = 0;
+			if( stps < this.steps) {
+				stps = this.steps;
+			}
+		}
+		
+		System.out.println("The average steps is " + stps);
+		return stps;
+	}
+	
+	
+	/**
 	 * Calls recursive method
 	 */
 	public void findHeaviest(int n) {
 		this.steps = 0;
-		measure1(this.set, n);
+		measure(this.set, n, 0);
 	}
 	
 	public void bestRoute() {
 		double leastSteps = 10000;
 		int j = -1;
-		for(int i = 0; i < this.num/2; i++) {
-			if(averageSteps(i) < leastSteps) {
-				leastSteps = averageSteps(i);
+		for(int i = 1; i < this.num/2; i++) {
+			if(worstCase(i) < leastSteps) {
+				leastSteps = worstCase(i);
 				j = i;
 			} 
 		}
@@ -196,11 +228,12 @@ public class Scale {
 	}
 	
 	public static void main(String[] args) {
-		Scale a = new Scale(1000);
-		//a.printSet();
-		//a.findHeaviest();
+		Scale a = new Scale(9);
+		a.init(2);
+		a.printSet();
+		a.findHeaviest(3);
 		//System.out.println("It took " + a.steps + " steps.");
-		a.bestRoute();
+		//a.bestRoute();
 	}
 
 }
